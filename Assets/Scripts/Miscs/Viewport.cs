@@ -5,6 +5,7 @@ using UnityEngine;
 public class Viewport : Singleton<Viewport>
 {
     private float minX, minY, maxX, maxY;   //屏幕左下角和右上角位置
+    private float middleX;  //视口中间X值
 
     private void Start()
     {
@@ -17,6 +18,8 @@ public class Viewport : Singleton<Viewport>
         minY = bottomLeft.y;
         maxX = topRight.x;
         maxY = topRight.y;
+
+        middleX = mainCamera.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0)).x;
     }
 
     /// <summary>
@@ -35,5 +38,27 @@ public class Viewport : Singleton<Viewport>
         position.y = Mathf.Clamp(playerPosition.y, minY + paddingY, maxY - paddingY);
 
         return position;
+    }
+
+    /// <summary>
+    /// 随机生成Enemy出生位置
+    /// </summary>
+    /// <param name="paddingX"></param>
+    /// <param name="paddingY"></param>
+    /// <returns></returns>
+    public Vector3 RandomEnemySpawnPosition(float paddingX, float paddingY)
+    {
+        return new Vector3(maxX + paddingX, Random.Range(minY + paddingY, maxY - paddingY));
+    }
+
+    /// <summary>
+    /// 随机生成Enemy移动位置：屏幕右半边
+    /// </summary>
+    /// <param name="paddingX"></param>
+    /// <param name="paddingY"></param>
+    /// <returns></returns>
+    public Vector3 RandomRightHalfPosition(float paddingX, float paddingY)
+    {
+        return new Vector3(Random.Range(middleX, maxX - paddingX), Random.Range(minY + paddingY, maxY - paddingY));
     }
 }

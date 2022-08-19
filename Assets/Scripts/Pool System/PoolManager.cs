@@ -5,6 +5,8 @@ using UnityEngine;
 public class PoolManager : MonoBehaviour
 {
     [SerializeField] private Pool[] playerProjectilePools;  //Player子弹池数组
+    [SerializeField] private Pool[] enemyProjectilePools;   //Enemy子弹池数组
+    [SerializeField] private Pool[] vFXPools;   //VFX池数组
 
     private static Dictionary<GameObject, Pool> dictionary;    //预制体和对象池的对应字典
 
@@ -13,12 +15,16 @@ public class PoolManager : MonoBehaviour
         dictionary = new Dictionary<GameObject, Pool>();
 
         Initialize(playerProjectilePools);  //初始化Player子弹池数组
+        Initialize(enemyProjectilePools);   //初始化Enemy子弹池数组
+        Initialize(vFXPools);   //初始化VFX池数组
     }
 
 #if UNITY_EDITOR
     private void OnDestroy()
     {
         CheckPoolSize(playerProjectilePools);
+        CheckPoolSize(enemyProjectilePools);
+        CheckPoolSize(vFXPools);
     }
 #endif
 

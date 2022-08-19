@@ -49,11 +49,11 @@ public class PlayerInput : ScriptableObject, InputActions.IGameplayActions
 
     public void OnMove(InputAction.CallbackContext context)
     {
-        if (context.phase == InputActionPhase.Performed)    //输入动作执行时，相当于GetKey
+        if (context.performed)    //输入动作执行时，相当于GetKey
         {
             onMove.Invoke(context.ReadValue<Vector2>());
         }
-        if(context.phase==InputActionPhase.Canceled)    //输入动作取消时
+        if(context.canceled)    //输入动作取消时
         {
             onStopMove.Invoke();
         }
@@ -61,11 +61,11 @@ public class PlayerInput : ScriptableObject, InputActions.IGameplayActions
 
     public void OnFIre(InputAction.CallbackContext context)
     {
-        if (context.phase == InputActionPhase.Performed)    //输入动作执行时，相当于GetKey
+        if (context.performed)    //输入动作执行时，相当于GetKey
         {
             onFire.Invoke();
         }
-        if (context.phase == InputActionPhase.Canceled)    //输入动作取消时
+        if (context.canceled)    //输入动作取消时
         {
             onStopFire.Invoke();
         }

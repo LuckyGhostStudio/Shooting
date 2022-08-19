@@ -1,18 +1,16 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class AutoDeactivate : MonoBehaviour
 {
+    [SerializeField] bool destroyGameObject;
+    [SerializeField] float lifetime = 3f;
 
-    [SerializeField] private bool destoryGameObject;    //是否销毁此对象
-    [SerializeField] private float lifeTime = 3f;       //生命周期
-
-    WaitForSeconds waitLifeTime;
+    WaitForSeconds waitLifetime;
 
     void Awake()
     {
-        waitLifeTime = new WaitForSeconds(lifeTime);
+        waitLifetime = new WaitForSeconds(lifetime);
     }
 
     void OnEnable()
@@ -22,13 +20,13 @@ public class AutoDeactivate : MonoBehaviour
 
     IEnumerator DeactivateCoroutine()
     {
-        yield return waitLifeTime;
+        yield return waitLifetime;
 
-        if (destoryGameObject)
+        if (destroyGameObject)
         {
             Destroy(gameObject);
         }
-        else
+        else 
         {
             gameObject.SetActive(false);
         }
