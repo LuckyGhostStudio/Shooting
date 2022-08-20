@@ -8,14 +8,25 @@ public class EnemyController : MonoBehaviour
 
     [SerializeField] private Vector2 padding;
     [SerializeField] private float moveSpeed = 2f;
-    [SerializeField] private float moveRotationAngle = 25f;
+    [SerializeField] private float moveRotationAngle = 25f;     //移动旋转角度
 
     [Header("Fire")]
 
+    [SerializeField] private GameObject[] projectiles;          //子弹数组
+    [SerializeField] private AudioData[] projectileLaunchSFX;   //子弹发射音效
+
     [SerializeField] private float minFireInterval;
     [SerializeField] private float maxFireInterval;
-    [SerializeField] private GameObject[] projectiles;  //子弹数组
     [SerializeField] private Transform muzzle;
+
+    float maxMoveDistancePerFrame;
+    WaitForFixedUpdate waitForFixedUpdate;
+
+    private void Awake()
+    {
+        maxMoveDistancePerFrame = moveSpeed * Time.fixedDeltaTime;  //每帧移动距离
+        waitForFixedUpdate = new WaitForFixedUpdate();
+    }
 
     void OnEnable()
     {
@@ -39,9 +50,9 @@ public class EnemyController : MonoBehaviour
 
         while (gameObject.activeSelf)   //对象启用时
         {
-            if (Vector3.Distance(transform.position, targetPosition) > Mathf.Epsilon)   //当前位置不在目标位置
+            if (Vector3.Distance(transform.position, targetPosition) > maxMoveDistancePerFrame)   //当前位置不在目标位置
             {
-                transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);   //移动到目标位置
+                transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.fixedDeltaTime);   //移动到目标位置
                 transform.rotation = Quaternion.AngleAxis((targetPosition - transform.position).normalized.y * moveRotationAngle, Vector3.right);   //移动时沿x轴旋转
             }
             else
@@ -49,7 +60,7 @@ public class EnemyController : MonoBehaviour
                 targetPosition = Viewport.Instance.RandomRightHalfPosition(padding.x, padding.y);   //随机生成目标位置
             }
 
-            yield return null;  //不等待，直到下一帧执行
+            yield return waitForFixedUpdate;  //到下一帧执行
         }
     }
 
@@ -67,6 +78,8 @@ public class EnemyController : MonoBehaviour
             {
                 PoolManager.Release(projectile, muzzle.position);   //根据子弹prefab从对象池取出子弹并启用
             }
+
+            AudioManager.Instance.PlayRandomSFX(projectileLaunchSFX);   //播放子弹发射音效
         }
     }
 }

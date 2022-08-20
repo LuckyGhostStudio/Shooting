@@ -29,6 +29,11 @@ public class StateBar : MonoBehaviour
         waitForDelayFill = new WaitForSeconds(fileDelayTime);
     }
 
+    private void OnDisable()
+    {
+        StopAllCoroutines();
+    }
+
     /// <summary>
     /// 初始化状态条参数
     /// </summary>
@@ -61,7 +66,7 @@ public class StateBar : MonoBehaviour
             fillImageFront.fillAmount = targetFillAmount;               //前景状态条设为目标值
             bufferedFillingCoroutine = StartCoroutine(BufferedFillingCoroutine(fillImageBack));    //缓冲条慢慢减少到目标值
         }
-        if (currentFileAmount < targetFillAmount)
+        else if (currentFileAmount < targetFillAmount)
         {
             fillImageBack.fillAmount = targetFillAmount;                //缓冲状态条设为目标值
             bufferedFillingCoroutine = StartCoroutine(BufferedFillingCoroutine(fillImageFront));   //前景状态条慢慢增加到目标值

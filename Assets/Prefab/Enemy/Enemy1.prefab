@@ -83,10 +83,17 @@ MonoBehaviour:
   padding: {x: 0.8, y: 0.4}
   moveSpeed: 1.5
   moveRotationAngle: 35
-  minFireInterval: 0.5
-  maxFireInterval: 3
   projectiles:
   - {fileID: 1448809099364253879, guid: b52c3914723faf340a8c5b38fbab58f6, type: 3}
+  projectileLaunchSFX:
+  - audioClip: {fileID: 8300000, guid: 406abe6e803b244eca380af5865dc5cb, type: 3}
+    volume: 0.5
+  - audioClip: {fileID: 8300000, guid: 56c2ee139e8c844ba9a3a17370e3b763, type: 3}
+    volume: 0.5
+  - audioClip: {fileID: 8300000, guid: 35644134c067099459f55ecfa2efd85d, type: 3}
+    volume: 0.5
+  minFireInterval: 0.5
+  maxFireInterval: 3
   muzzle: {fileID: 638764851}
 --- !u!114 &3134647667100069549
 MonoBehaviour:
@@ -101,9 +108,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   deathVFX: {fileID: 2342042931496088306, guid: 97b415311529fa145aacd3eedaac728e, type: 3}
+  deathSFX:
+  - audioClip: {fileID: 8300000, guid: 9314f85ef4c5ea04a87a0323c78fdd2e, type: 3}
+    volume: 1
+  - audioClip: {fileID: 8300000, guid: 0f2184b0c1d094741b11e8f4077c52e9, type: 3}
+    volume: 1
   maxHealth: 12
   showOnHeadHealthBar: 1
   onHeadHealthBar: {fileID: 4120949445499493058}
+  deathEnergyBonus: 5
 --- !u!50 &1947924509012520921
 Rigidbody2D:
   serializedVersion: 4

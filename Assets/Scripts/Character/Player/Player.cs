@@ -6,7 +6,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]     //添加刚体组件
 public class Player : Character
 {
-    [SerializeField] private StateBarHUD stateBarHUD;
+    [SerializeField] private StateBarHUD stateBarHUD;           //UI界面血条
     [SerializeField] private bool regenerateHealth = true;      //是否可持续回血
     [SerializeField] private float healthRegenerateTime;        //回血间隔时间
     [SerializeField, Range(0f, 1f)] private float healthRegeneratePercent;     //回血百分比
@@ -17,9 +17,9 @@ public class Player : Character
 
     [Header("Move")]
 
-    [SerializeField] private float moveSpeed = 10f;             //移动速度
-    [SerializeField] private float accelerateTime = 3f, decelerateTime = 3f;     //加速时间 减速时间
-    [SerializeField] private float moveRotationAngle = 50f;
+    [SerializeField] private float moveSpeed = 10f;                             //移动速度
+    [SerializeField] private float accelerateTime = 3f, decelerateTime = 3f;    //加速时间 减速时间
+    [SerializeField] private float moveRotationAngle = 50f;                     //移动时转动角度
 
     [SerializeField] private float paddingX = 0.8f, paddingY = 0.22f;  //Player中心到边框距离
 
@@ -30,13 +30,43 @@ public class Player : Character
     [SerializeField] private GameObject projectile3;  //子弹预制体
     [SerializeField] private Transform muzzleMiddle, muzzleTop, muzzleBottom;   //枪口
 
-    [SerializeField, Range(0,2)] private int weaponPower = 0;   //武器威力
-    [SerializeField] private float fireInterval = 0.2f;         //开火间隔时间
+    [SerializeField] private AudioData projectileLaunchSFX;       //子弹发射音效数据
 
+    [SerializeField, Range(0, 2)] private int weaponPower = 0;      //武器威力等级
+    [SerializeField] private float fireInterval = 0.2f;             //开火间隔时间
+
+    [Header("Dodge")]
+
+    [SerializeField] private AudioData dodgeSFX;    //闪避音效
+
+    [SerializeField, Range(0, 100)] private int dodgeEnergyCost = 25;      //闪避消耗能量值
+
+    [SerializeField] private float maxRoll = 720f;  //最大滚转角度
+    [SerializeField] private float rollSpeed = 360; //滚转速度 度/s
+    [SerializeField] private Vector3 dodgeScale = new Vector3(0.5f, 0.5f, 0.5f);    //闪避缩放值
+
+    [Header("Overdrive")]
+
+    [SerializeField] private int overdriveDodgeFactor = 2;
+    [SerializeField] private float overdriveSpeedFactor = 1.2f;
+    [SerializeField] private float overdriveFireFactor = 1.2f;
+
+    private float currentRoll;          //当前滚转角
+    private float dodgeDuration;        //闪避持续时间
+
+    private bool isDodging = false;     //是否正在闪避
+    private bool isOverdriving = false; //是否处于能量爆发状态
+
+    Vector2 previousVelocity;
+    Quaternion previousRotation;
+
+    WaitForFixedUpdate waitForFixedUpdate;
     WaitForSeconds waitForFireInterval;
+    WaitForSeconds waitForOverdriveFireInterval;
     WaitForSeconds waitHealthRegenerateTime;
 
     private Rigidbody2D rigidbody2d;
+    private Collider2D collider2d;
 
     Coroutine moveCoroutine;
     Coroutine healthRegenerateCoroutine;
@@ -44,6 +74,16 @@ public class Player : Character
     private void Awake()
     {
         rigidbody2d = GetComponent<Rigidbody2D>();
+        collider2d = GetComponent<Collider2D>();
+
+        dodgeDuration = maxRoll / rollSpeed;
+
+        rigidbody2d.gravityScale = 0;
+
+        waitForFixedUpdate = new WaitForFixedUpdate();
+        waitForFireInterval = new WaitForSeconds(fireInterval);
+        waitForOverdriveFireInterval = new WaitForSeconds(fireInterval / overdriveFireFactor);  //能量爆发时的开火间隔
+        waitHealthRegenerateTime = new WaitForSeconds(healthRegenerateTime);
     }
 
     protected override void OnEnable()
@@ -55,6 +95,11 @@ public class Player : Character
         input.onStopMove += StopMove;   //停止移动
         input.onFire += Fire;           //开火
         input.onStopFire += StopFire;   //停止开火
+        input.onDodge += Dodge;         //闪避
+        input.onOverdrive += Overdrive; //能量爆发
+
+        PlayerOverdrive.on += OverdriveOn;      //能量爆发开启
+        PlayerOverdrive.off += OverdriveOff;    //能量爆发关闭
     }
 
     private void OnDisable()
@@ -64,21 +109,22 @@ public class Player : Character
         input.onStopMove -= StopMove;
         input.onFire -= Fire;           //开火
         input.onStopFire -= StopFire;   //停止开火
+        input.onDodge -= Dodge;         //闪避
+        input.onOverdrive -= Overdrive; //能量爆发
+
+        PlayerOverdrive.on -= OverdriveOn;      //能量爆发开启
+        PlayerOverdrive.off -= OverdriveOff;    //能量爆发关闭
     }
 
 
     void Start()
     {
-        rigidbody2d.gravityScale = 0;
-
-        waitForFireInterval = new WaitForSeconds(fireInterval);
-        waitHealthRegenerateTime = new WaitForSeconds(healthRegenerateTime);
-
         stateBarHUD.Initialize(health, maxHealth);  //初始化血条
 
         input.EnableGameplayInput();    //启用Gameplay输入
     }
 
+    #region HEALTH
     public override void TakeDamage(int damage)
     {
         base.TakeDamage(damage);
@@ -111,11 +157,7 @@ public class Player : Character
         stateBarHUD.UpdateState(health, maxHealth);     //更新血条
         base.Die();
     }
-
-    void Update()
-    {
-        
-    }
+    #endregion 
 
     #region MOVE
     /// <summary>
@@ -132,8 +174,8 @@ public class Player : Character
         //Quaternion moveRotation = Quaternion.AngleAxis(moveRotationAngle * moveInput.y, Vector3.right);
 
         //变速移动
-        moveCoroutine = StartCoroutine(MoveCoroutine(accelerateTime, moveInput.normalized * moveSpeed, Quaternion.AngleAxis(moveRotationAngle * moveInput.y, Vector3.right)));    
-        StartCoroutine(MovePositionLimitCoroutine());
+        moveCoroutine = StartCoroutine(MoveCoroutine(accelerateTime, moveInput.normalized * moveSpeed, Quaternion.AngleAxis(moveRotationAngle * moveInput.y, Vector3.right)));
+        StartCoroutine(nameof(MovePositionLimitCoroutine));
     }
 
     /// <summary>
@@ -147,7 +189,7 @@ public class Player : Character
         }
 
         moveCoroutine = StartCoroutine(MoveCoroutine(decelerateTime, Vector2.zero, Quaternion.identity));    //减速到0
-        StopCoroutine(MovePositionLimitCoroutine());
+        StopCoroutine(nameof(MovePositionLimitCoroutine));
     }
 
     /// <summary>
@@ -159,13 +201,16 @@ public class Player : Character
     /// <returns></returns>
     IEnumerator MoveCoroutine(float time, Vector2 moveVelocity, Quaternion moveRotation)
     {
+        previousVelocity = rigidbody2d.velocity;
+        previousRotation = transform.rotation;
+
         float t = 0f;
         while (t < 1)
         {
             t += Time.fixedDeltaTime / time;
-            rigidbody2d.velocity = Vector2.Lerp(rigidbody2d.velocity, moveVelocity, t);     //变速
-            transform.rotation = Quaternion.Lerp(transform.rotation, moveRotation, t);      //沿x轴旋转
-            yield return null;
+            rigidbody2d.velocity = Vector2.Lerp(previousVelocity, moveVelocity, t);         //变速
+            transform.rotation = Quaternion.Lerp(previousRotation, moveRotation, t);        //沿x轴旋转
+            yield return waitForFixedUpdate;
         }
     }
 
@@ -214,8 +259,80 @@ public class Player : Character
                     break;
             }
 
-            yield return waitForFireInterval;   //等待开火间隔时间
+            AudioManager.Instance.PlayRandomSFX(projectileLaunchSFX);    //播放射击音效
+
+            yield return isOverdriving ? waitForOverdriveFireInterval : waitForFireInterval;    //根据是否能量爆发 等待相应开火间隔时间
         }
     }
+    #endregion
+
+    #region DODGE
+
+    /// <summary>
+    /// 闪避
+    /// </summary>
+    private void Dodge()
+    {
+        if (isDodging || !PlayerEnergy.Instance.IsEnough(dodgeEnergyCost)) return;  //正在闪避||能量值不足
+        StartCoroutine(nameof(DodgeCoroutine));
+    }
+
+    IEnumerator DodgeCoroutine()
+    {
+        isDodging = true;   //闪避开始
+        AudioManager.Instance.PlayRandomSFX(dodgeSFX);  //播放闪避音效
+        PlayerEnergy.Instance.Use(dodgeEnergyCost);     //消耗能量值
+
+        collider2d.isTrigger = true;    //Player碰撞体设为触发器，敌人子弹无法碰到（无敌状态）
+
+        currentRoll = 0f;
+
+        //Player沿x轴转动
+        while (currentRoll < maxRoll)
+        {
+            currentRoll += rollSpeed * Time.deltaTime;
+            transform.rotation = Quaternion.AngleAxis(currentRoll, Vector3.right);  //设置Player旋转值为当前滚转角度 沿x轴
+            transform.localScale = BezierCurve.QuadraticPoint(Vector3.one, Vector3.one, dodgeScale, currentRoll / maxRoll);  //缩放Player大小（贝塞尔曲线插值）
+
+            yield return null;
+        }
+
+        collider2d.isTrigger = false;   //取消无敌状态
+        isDodging = false;  //闪避结束
+    }
+    #endregion
+
+    #region OVERDRIVE
+    /// <summary>
+    /// 能量爆发
+    /// </summary>
+    private void Overdrive()
+    {
+        if (!PlayerEnergy.Instance.IsEnough(PlayerEnergy.MAX)) return;
+
+        PlayerOverdrive.on.Invoke();    //能量满 开启能量爆发
+    }
+
+    /// <summary>
+    /// 开启能量爆发
+    /// </summary>
+    private void OverdriveOn()
+    {
+        isOverdriving = true;
+        dodgeEnergyCost *= overdriveDodgeFactor;    //翻滚能量消耗增加
+        moveSpeed *= overdriveSpeedFactor;          //移动速度增加
+
+    }
+
+    /// <summary>
+    /// 结束能量爆发
+    /// </summary>
+    private void OverdriveOff()
+    {
+        isOverdriving = false;
+        dodgeEnergyCost /= overdriveDodgeFactor;    //翻滚能量消耗减少
+        moveSpeed /= overdriveSpeedFactor;          //移动速度恢复
+    }
+
     #endregion
 }

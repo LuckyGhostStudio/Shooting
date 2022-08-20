@@ -3,10 +3,10 @@ using UnityEngine;
 
 public class AutoDeactivate : MonoBehaviour
 {
-    [SerializeField] bool destroyGameObject;
-    [SerializeField] float lifetime = 3f;
+    [SerializeField] bool destroyGameObject;    //是否销毁对象
+    [SerializeField] float lifetime = 3f;       //声明周期
 
-    WaitForSeconds waitLifetime;
+    WaitForSeconds waitLifetime;        
 
     void Awake()
     {
@@ -18,6 +18,10 @@ public class AutoDeactivate : MonoBehaviour
         StartCoroutine(DeactivateCoroutine());
     }
 
+    /// <summary>
+    /// 销毁对象
+    /// </summary>
+    /// <returns></returns>
     IEnumerator DeactivateCoroutine()
     {
         yield return waitLifetime;

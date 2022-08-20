@@ -4,7 +4,10 @@ using UnityEngine;
 
 public class Character : MonoBehaviour
 {
-    [SerializeField] private GameObject deathVFX;    //死亡效果
+    [Header("Death")]
+
+    [SerializeField] private GameObject deathVFX;       //死亡效果
+    [SerializeField] private AudioData[] deathSFX;      //死亡爆炸音效
 
     [Header("Health")]
 
@@ -55,7 +58,7 @@ public class Character : MonoBehaviour
     {
         health -= damage;
 
-        if (showOnHeadHealthBar)
+        if (showOnHeadHealthBar && gameObject.activeSelf)
         {
             onHeadHealthBar.UpdateState(health, maxHealth); //更新血条
         }
@@ -66,9 +69,13 @@ public class Character : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 角色死亡
+    /// </summary>
     public virtual void Die()
     {
         health = 0;
+        AudioManager.Instance.PlayRandomSFX(deathSFX);      //播放爆炸音效
         PoolManager.Release(deathVFX, transform.position);  //生成死亡效果
         gameObject.SetActive(false);
     }

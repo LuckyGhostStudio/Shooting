@@ -15,6 +15,12 @@ public class PlayerInput : ScriptableObject, InputActions.IGameplayActions
     public event UnityAction onFire = delegate { };
     public event UnityAction onStopFire = delegate { };
 
+    //闪避事件
+    public event UnityAction onDodge = delegate { };
+
+    //过速事件：能量爆发
+    public event UnityAction onOverdrive = delegate { };
+
     InputActions inputActions;
 
     private void OnEnable()
@@ -47,6 +53,10 @@ public class PlayerInput : ScriptableObject, InputActions.IGameplayActions
         Cursor.lockState = CursorLockMode.Locked;   //锁定鼠标指针
     }
 
+    /// <summary>
+    /// 移动
+    /// </summary>
+    /// <param name="context"></param>
     public void OnMove(InputAction.CallbackContext context)
     {
         if (context.performed)    //输入动作执行时，相当于GetKey
@@ -59,7 +69,11 @@ public class PlayerInput : ScriptableObject, InputActions.IGameplayActions
         }
     }
 
-    public void OnFIre(InputAction.CallbackContext context)
+    /// <summary>
+    /// 开火
+    /// </summary>
+    /// <param name="context"></param>
+    public void OnFire(InputAction.CallbackContext context)
     {
         if (context.performed)    //输入动作执行时，相当于GetKey
         {
@@ -68,6 +82,30 @@ public class PlayerInput : ScriptableObject, InputActions.IGameplayActions
         if (context.canceled)    //输入动作取消时
         {
             onStopFire.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// 闪避
+    /// </summary>
+    /// <param name="context"></param>
+    public void OnDodge(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            onDodge.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// 过速：能量爆发
+    /// </summary>
+    /// <param name="context"></param>
+    public void OnOverdrive(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            onOverdrive.Invoke();
         }
     }
 }
