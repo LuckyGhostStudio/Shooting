@@ -8,6 +8,15 @@ public class Enemy : Character
 
     [SerializeField] private int deathEnergyBonus = 3;  //死亡能量值
 
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if(collision.gameObject.TryGetComponent<Player>(out Player player))     //敌人碰到Player
+        {
+            player.Die();   //Player死亡
+            Die();          //敌人死亡
+        }
+    }
+
     public override void Die()
     {
         ScoreManager.Instance.AddScore(scorePoint);         //增加得分

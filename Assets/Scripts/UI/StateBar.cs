@@ -15,16 +15,16 @@ public class StateBar : MonoBehaviour
     protected private float targetFillAmount;     //目标填充值
     private float t;    //插值时间
 
-    private Canvas canvas;
-
     private WaitForSeconds waitForDelayFill;    //等待延迟填充
 
     private Coroutine bufferedFillingCoroutine;
 
     private void Awake()
     {
-        canvas = GetComponent<Canvas>();
-        canvas.worldCamera = Camera.main;
+        if(TryGetComponent<Canvas>(out Canvas canvas))
+        {
+            canvas.worldCamera = Camera.main;
+        }
 
         waitForDelayFill = new WaitForSeconds(fileDelayTime);
     }

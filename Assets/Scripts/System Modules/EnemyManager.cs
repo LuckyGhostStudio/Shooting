@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class EnemyManager : Singleton<EnemyManager>
 {
+    public GameObject RandomEnemy => enemyList.Count == 0 ? null : enemyList[Random.Range(0, enemyList.Count)]; //随机返回一个场景中的敌人
     public int WaveNumber => waveNumber;                //波数：等价于 get{return waveNumber;}
     public float TimeBetweenWaves => timeBetweenWaves;  //每波间隔时间
 
@@ -41,8 +42,6 @@ public class EnemyManager : Singleton<EnemyManager>
     {
         while (spawnEnemy)  //生成敌人
         {
-            yield return waitUntilNoEnemy;                                  //等待直到敌人数量为0
-
             waveUI.SetActive(true);     //显示波数
 
             yield return waitTimeBetweenWaves;                              //等待一会
@@ -68,6 +67,8 @@ public class EnemyManager : Singleton<EnemyManager>
 
             yield return waitTimeBetweenSpawns;
         }
+
+        yield return waitUntilNoEnemy;                                  //等待直到敌人数量为0
 
         waveNumber++;   //波数++
     }

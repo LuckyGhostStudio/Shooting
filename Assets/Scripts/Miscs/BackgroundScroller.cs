@@ -12,8 +12,12 @@ public class BackgroundScroller : MonoBehaviour
         material = GetComponent<Renderer>().material;
     }
 
-    void Update()
+    IEnumerator Start()
     {
-        material.mainTextureOffset += scrollVelocity * Time.deltaTime;     //改变材质mainTexture偏移
+        while(GameManager.GameState != GameState.GameOver)  //游戏未结束时
+        {
+            material.mainTextureOffset += scrollVelocity * Time.deltaTime;     //改变材质mainTexture偏移
+            yield return null;
+        }
     }
 }

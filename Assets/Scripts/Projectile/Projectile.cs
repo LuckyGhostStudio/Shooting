@@ -8,24 +8,29 @@ public class Projectile : MonoBehaviour
     [SerializeField] private AudioData[] hitSFX;      //命中音效
 
     [SerializeField] private int damage;
-    [SerializeField] private float moveSpeed = 10f;
+    [SerializeField] protected float moveSpeed = 10f;
     [SerializeField] protected Vector2 moveDirection;
 
     protected GameObject target;
 
     protected virtual void OnEnable()
     {
-        StartCoroutine(MoveDirectly());     //子弹移动
+        StartCoroutine(MoveDirectlyCoroutine());     //子弹移动
     }
 
-    IEnumerator MoveDirectly()
+    IEnumerator MoveDirectlyCoroutine()
     {
         while (gameObject.activeSelf)
         {
-            transform.Translate(moveDirection * moveSpeed * Time.deltaTime);
+            Move();
             yield return null;
         }
     }
+
+    /// <summary>
+    /// 移动
+    /// </summary>
+    public void Move() => transform.Translate(moveDirection * moveSpeed * Time.deltaTime);
 
     protected virtual void OnCollisionEnter2D(Collision2D collision)
     {
@@ -40,4 +45,10 @@ public class Projectile : MonoBehaviour
             gameObject.SetActive(false);    //禁用子弹对象
         }
     }
+
+    /// <summary>
+    /// 设置目标对象
+    /// </summary>
+    /// <param name="target">目标</param>
+    protected void SetTarget(GameObject target) => this.target = target;
 }

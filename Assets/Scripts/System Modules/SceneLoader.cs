@@ -11,6 +11,7 @@ public class SceneLoader : PersistentSingleton<SceneLoader>
 
     private Color color;
 
+    private const string MAIN_MENU = "MainMenu";
     private const string GAMEPLAY = "Gameplay";
 
     /// <summary>
@@ -18,7 +19,7 @@ public class SceneLoader : PersistentSingleton<SceneLoader>
     /// </summary>
     /// <param name="sceneName">场景名</param>
     /// <returns></returns>
-    IEnumerator LoadCoroutine(string sceneName)
+    IEnumerator LoadingCoroutine(string sceneName)
     {
         var loadingOperation = SceneManager.LoadSceneAsync(sceneName);  //场景异步加载
         loadingOperation.allowSceneActivation = false;      //场景不激活
@@ -33,6 +34,8 @@ public class SceneLoader : PersistentSingleton<SceneLoader>
 
             yield return null;
         }
+
+        yield return new WaitUntil(() => loadingOperation.progress >= 0.9f);    //等待直到场景加载90%以上
 
         loadingOperation.allowSceneActivation = true;   //激活场景
 
@@ -53,6 +56,16 @@ public class SceneLoader : PersistentSingleton<SceneLoader>
     /// </summary>
     public void LoadGameplayScene()
     {
-        StartCoroutine(LoadCoroutine(GAMEPLAY));    //加载场景
+        StopAllCoroutines();
+        StartCoroutine(LoadingCoroutine(GAMEPLAY));    //加载Gameplay场景
+    }
+
+    /// <summary>
+    /// 加载主菜单场景
+    /// </summary>
+    public void LoadMainMenuScene()
+    {
+        StopAllCoroutines();
+        StartCoroutine(LoadingCoroutine(MAIN_MENU));    //加载主菜单场景
     }
 }

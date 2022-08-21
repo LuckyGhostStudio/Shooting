@@ -6,7 +6,6 @@ public class EnemyController : MonoBehaviour
 {
     [Header("Move")]
 
-    [SerializeField] private Vector2 padding;
     [SerializeField] private float moveSpeed = 2f;
     [SerializeField] private float moveRotationAngle = 25f;     //移动旋转角度
 
@@ -19,13 +18,17 @@ public class EnemyController : MonoBehaviour
     [SerializeField] private float maxFireInterval;
     [SerializeField] private Transform muzzle;
 
-    float maxMoveDistancePerFrame;
     WaitForFixedUpdate waitForFixedUpdate;
+
+    private Vector2 padding;
 
     private void Awake()
     {
-        maxMoveDistancePerFrame = moveSpeed * Time.fixedDeltaTime;  //每帧移动距离
         waitForFixedUpdate = new WaitForFixedUpdate();
+
+        var size = transform.GetChild(0).GetComponent<Renderer>().bounds.size;   //Player模型的尺寸
+        padding.x = size.x / 2;
+        padding.y = size.y / 2;
     }
 
     void OnEnable()
@@ -50,7 +53,7 @@ public class EnemyController : MonoBehaviour
 
         while (gameObject.activeSelf)   //对象启用时
         {
-            if (Vector3.Distance(transform.position, targetPosition) > maxMoveDistancePerFrame)   //当前位置不在目标位置
+            if (Vector3.Distance(transform.position, targetPosition) > moveSpeed * Time.fixedDeltaTime)   //当前位置不在目标位置
             {
                 transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.fixedDeltaTime);   //移动到目标位置
                 transform.rotation = Quaternion.AngleAxis((targetPosition - transform.position).normalized.y * moveRotationAngle, Vector3.right);   //移动时沿x轴旋转
@@ -73,6 +76,8 @@ public class EnemyController : MonoBehaviour
         while (gameObject.activeSelf)
         {
             yield return new WaitForSeconds(Random.Range(minFireInterval, maxFireInterval));    //等待随机开火间隔
+
+            if (GameManager.GameState == GameState.GameOver) yield break;   //游戏结束，停止开火
 
             foreach (GameObject projectile in projectiles)
             {

@@ -5,7 +5,7 @@ using UnityEngine.Events;
 using UnityEngine.InputSystem;
 
 [CreateAssetMenu(menuName = "Player Input")]
-public class PlayerInput : ScriptableObject, InputActions.IGameplayActions
+public class PlayerInput : ScriptableObject, InputActions.IGameplayActions, InputActions.IPauseMenuActions
 {
     //移动事件
     public event UnityAction<Vector2> onMove = delegate { };
@@ -21,12 +21,22 @@ public class PlayerInput : ScriptableObject, InputActions.IGameplayActions
     //过速事件：能量爆发
     public event UnityAction onOverdrive = delegate { };
 
+    //发射导弹事件
+    public event UnityAction onLaunchMissile = delegate { };
+
+    //暂停事件
+    public event UnityAction onPause = delegate { };
+
+    //取消暂停事件
+    public event UnityAction onUnpause = delegate { };
+
     InputActions inputActions;
 
     private void OnEnable()
     {
         inputActions = new InputActions();
         inputActions.Gameplay.SetCallbacks(this);   //登记Gamplay动作表回调函数
+        inputActions.PauseMenu.SetCallbacks(this);  //登记PauseMenu动作表回调函数
     }
 
     private void OnDisable()
@@ -35,23 +45,51 @@ public class PlayerInput : ScriptableObject, InputActions.IGameplayActions
     }
 
     /// <summary>
-    /// 禁用所有输入
+    /// 切换动作表
     /// </summary>
-    public void DisableAllInput()
+    /// <param name="actionMap">需要切换到的动作表</param>
+    /// /// <param name="isUIInput">是否是UI输入</param>
+    private void SwitchActionMap(InputActionMap actionMap, bool isUIInput)
     {
-        inputActions.Gameplay.Disable();    //禁用Gameplay输入
+        inputActions.Disable();     //禁用所有动作表
+        actionMap.Enable();     //启用目标动作表
+
+        if (isUIInput)
+        {
+            Cursor.visible = true;                      //启用鼠标指针
+            Cursor.lockState = CursorLockMode.None;     //取消锁定鼠标指针
+        }
+        else
+        {
+            Cursor.visible = false;                     //隐藏鼠标指针
+            Cursor.lockState = CursorLockMode.Locked;   //锁定鼠标指针
+        }
     }
 
     /// <summary>
-    /// 启用Gameplay输入
+    /// 切换到动态更新模式：更新不受timeScale影响
     /// </summary>
-    public void EnableGameplayInput()
-    {
-        inputActions.Gameplay.Enable();     //启用Gameplay输入
+    public void SwitchToDynamicUpdateMode() => InputSystem.settings.updateMode = InputSettings.UpdateMode.ProcessEventsInDynamicUpdate;
 
-        Cursor.visible = false;                     //隐藏鼠标指针
-        Cursor.lockState = CursorLockMode.Locked;   //锁定鼠标指针
-    }
+    /// <summary>
+    /// 切换到固定帧更新模式
+    /// </summary>
+    public void SwitchToFixedUpdateMode() => InputSystem.settings.updateMode = InputSettings.UpdateMode.ProcessEventsInFixedUpdate;
+
+    /// <summary>
+    /// 禁用所有输入
+    /// </summary>
+    public void DisableAllInput() => inputActions.Disable();     //禁用所有动作表
+
+    /// <summary>
+    /// 切换到Gameplay输入
+    /// </summary>
+    public void EnableGameplayInput() => SwitchActionMap(inputActions.Gameplay, false);  //切换到Gameplay动作表
+
+    /// <summary>
+    /// 切换到PauseMenu输入
+    /// </summary>
+    public void EnablePauseMenuInput() => SwitchActionMap(inputActions.PauseMenu, true);  //切换到PauseMenu动作表
 
     /// <summary>
     /// 移动
@@ -61,7 +99,7 @@ public class PlayerInput : ScriptableObject, InputActions.IGameplayActions
     {
         if (context.performed)    //输入动作执行时，相当于GetKey
         {
-            onMove.Invoke(context.ReadValue<Vector2>());
+            onMove.Invoke(context.ReadValue<Vector2>());    //执行事件
         }
         if(context.canceled)    //输入动作取消时
         {
@@ -106,6 +144,42 @@ public class PlayerInput : ScriptableObject, InputActions.IGameplayActions
         if (context.performed)
         {
             onOverdrive.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// 暂停游戏
+    /// </summary>
+    /// <param name="context"></param>
+    public void OnPause(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            onPause.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// 取消暂停
+    /// </summary>
+    /// <param name="context"></param>
+    public void OnUnpause(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            onUnpause.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// 发射导弹
+    /// </summary>
+    /// <param name="context"></param>
+    public void OnLaunchMissile(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            onLaunchMissile.Invoke();
         }
     }
 }

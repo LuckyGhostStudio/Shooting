@@ -21,13 +21,12 @@ public class Player : Character
     [SerializeField] private float accelerateTime = 3f, decelerateTime = 3f;    //加速时间 减速时间
     [SerializeField] private float moveRotationAngle = 50f;                     //移动时转动角度
 
-    [SerializeField] private float paddingX = 0.8f, paddingY = 0.22f;  //Player中心到边框距离
-
     [Header("Fire")]
 
     [SerializeField] private GameObject projectile1;
     [SerializeField] private GameObject projectile2;
-    [SerializeField] private GameObject projectile3;  //子弹预制体
+    [SerializeField] private GameObject projectile3;            //普通子弹预制体
+    [SerializeField] private GameObject projectileOverdrive;    //能量爆发子弹 
     [SerializeField] private Transform muzzleMiddle, muzzleTop, muzzleBottom;   //枪口
 
     [SerializeField] private AudioData projectileLaunchSFX;       //子弹发射音效数据
@@ -51,11 +50,17 @@ public class Player : Character
     [SerializeField] private float overdriveSpeedFactor = 1.2f;
     [SerializeField] private float overdriveFireFactor = 1.2f;
 
+    //Player中心到边框距离
+    private float paddingX;
+    private float paddingY;  
+
     private float currentRoll;          //当前滚转角
     private float dodgeDuration;        //闪避持续时间
 
     private bool isDodging = false;     //是否正在闪避
     private bool isOverdriving = false; //是否处于能量爆发状态
+
+    private float slowMotionDuration = 1f;   //子弹时间持续时间
 
     Vector2 previousVelocity;
     Quaternion previousRotation;
@@ -64,6 +69,7 @@ public class Player : Character
     WaitForSeconds waitForFireInterval;
     WaitForSeconds waitForOverdriveFireInterval;
     WaitForSeconds waitHealthRegenerateTime;
+    WaitForSeconds waitForDecelerationTime;
 
     private Rigidbody2D rigidbody2d;
     private Collider2D collider2d;
@@ -71,10 +77,17 @@ public class Player : Character
     Coroutine moveCoroutine;
     Coroutine healthRegenerateCoroutine;
 
+    MissileSystem missile;  //导弹系统
+
     private void Awake()
     {
         rigidbody2d = GetComponent<Rigidbody2D>();
         collider2d = GetComponent<Collider2D>();
+        missile = GetComponent<MissileSystem>();
+
+        var size = transform.GetChild(0).GetComponent<Renderer>().bounds.size;   //Player模型的尺寸
+        paddingX = size.x / 2;
+        paddingY = size.y / 2;
 
         dodgeDuration = maxRoll / rollSpeed;
 
@@ -84,6 +97,7 @@ public class Player : Character
         waitForFireInterval = new WaitForSeconds(fireInterval);
         waitForOverdriveFireInterval = new WaitForSeconds(fireInterval / overdriveFireFactor);  //能量爆发时的开火间隔
         waitHealthRegenerateTime = new WaitForSeconds(healthRegenerateTime);
+        waitForDecelerationTime = new WaitForSeconds(decelerateTime);       //等待减速时间
     }
 
     protected override void OnEnable()
@@ -97,6 +111,7 @@ public class Player : Character
         input.onStopFire += StopFire;   //停止开火
         input.onDodge += Dodge;         //闪避
         input.onOverdrive += Overdrive; //能量爆发
+        input.onLaunchMissile += LaunchMissile; //发射导弹
 
         PlayerOverdrive.on += OverdriveOn;      //能量爆发开启
         PlayerOverdrive.off += OverdriveOff;    //能量爆发关闭
@@ -111,6 +126,7 @@ public class Player : Character
         input.onStopFire -= StopFire;   //停止开火
         input.onDodge -= Dodge;         //闪避
         input.onOverdrive -= Overdrive; //能量爆发
+        input.onLaunchMissile -= LaunchMissile; //发射导弹
 
         PlayerOverdrive.on -= OverdriveOn;      //能量爆发开启
         PlayerOverdrive.off -= OverdriveOff;    //能量爆发关闭
@@ -154,7 +170,8 @@ public class Player : Character
 
     public override void Die()
     {
-        stateBarHUD.UpdateState(health, maxHealth);     //更新血条
+        GameManager.GameState = GameState.GameOver;     //GameOver
+        stateBarHUD.UpdateState(0, maxHealth);     //更新血条
         base.Die();
     }
     #endregion 
@@ -175,7 +192,8 @@ public class Player : Character
 
         //变速移动
         moveCoroutine = StartCoroutine(MoveCoroutine(accelerateTime, moveInput.normalized * moveSpeed, Quaternion.AngleAxis(moveRotationAngle * moveInput.y, Vector3.right)));
-        StartCoroutine(nameof(MovePositionLimitCoroutine));
+        StopCoroutine(nameof(DecelerationCoroutine));   //停止减速等待
+        StartCoroutine(nameof(MoveRangeLimitationCoroutine));
     }
 
     /// <summary>
@@ -189,7 +207,7 @@ public class Player : Character
         }
 
         moveCoroutine = StartCoroutine(MoveCoroutine(decelerateTime, Vector2.zero, Quaternion.identity));    //减速到0
-        StopCoroutine(nameof(MovePositionLimitCoroutine));
+        StartCoroutine(nameof(DecelerationCoroutine));  //启用减速等待协程
     }
 
     /// <summary>
@@ -215,10 +233,10 @@ public class Player : Character
     }
 
     /// <summary>
-    /// 限制移动位置
+    /// 限制移动范围
     /// </summary>
     /// <returns></returns>
-    IEnumerator MovePositionLimitCoroutine()
+    IEnumerator MoveRangeLimitationCoroutine()
     {
         while (true)
         {
@@ -226,6 +244,18 @@ public class Player : Character
             yield return null;
         }
     }
+
+    /// <summary>
+    /// 减速等待
+    /// </summary>
+    /// <returns></returns>
+    IEnumerator DecelerationCoroutine()
+    {
+        yield return waitForDecelerationTime;   //等待减速时间结束
+
+        StopCoroutine(nameof(MoveRangeLimitationCoroutine));    //停止限制移动协程
+    }
+
     #endregion
 
     #region FIRE
@@ -246,16 +276,16 @@ public class Player : Character
             switch (weaponPower)
             {
                 case 0:
-                    PoolManager.Release(projectile1, muzzleMiddle.position);    //生成子弹1
+                    PoolManager.Release(Projectile(projectile1), muzzleMiddle.position);    //生成子弹1
                     break;
                 case 1:
-                    PoolManager.Release(projectile1, muzzleTop.position);       //生成子弹1
-                    PoolManager.Release(projectile1, muzzleBottom.position);    //生成子弹1
+                    PoolManager.Release(Projectile(projectile1), muzzleTop.position);       //生成子弹1
+                    PoolManager.Release(Projectile(projectile1), muzzleBottom.position);    //生成子弹1
                     break;
                 case 2:
-                    PoolManager.Release(projectile1, muzzleMiddle.position);    //生成子弹1
-                    PoolManager.Release(projectile2, muzzleTop.position);       //生成子弹2
-                    PoolManager.Release(projectile3, muzzleBottom.position);    //生成子弹3
+                    PoolManager.Release(Projectile(projectile1), muzzleMiddle.position);    //生成子弹1
+                    PoolManager.Release(Projectile(projectile2), muzzleTop.position);       //生成子弹2
+                    PoolManager.Release(Projectile(projectile3), muzzleBottom.position);    //生成子弹3
                     break;
             }
 
@@ -264,6 +294,14 @@ public class Player : Character
             yield return isOverdriving ? waitForOverdriveFireInterval : waitForFireInterval;    //根据是否能量爆发 等待相应开火间隔时间
         }
     }
+
+    /// <summary>
+    /// 根据是否过速返回对应子弹
+    /// </summary>
+    /// <param name="projectile"></param>
+    /// <returns></returns>
+    private GameObject Projectile(GameObject projectile) => isOverdriving ? projectileOverdrive : projectile;
+
     #endregion
 
     #region DODGE
@@ -286,6 +324,8 @@ public class Player : Character
         collider2d.isTrigger = true;    //Player碰撞体设为触发器，敌人子弹无法碰到（无敌状态）
 
         currentRoll = 0f;
+
+        TimeController.Instance.BulletTime(slowMotionDuration, slowMotionDuration);     //子弹时间：时间流速减小增大
 
         //Player沿x轴转动
         while (currentRoll < maxRoll)
@@ -321,7 +361,7 @@ public class Player : Character
         isOverdriving = true;
         dodgeEnergyCost *= overdriveDodgeFactor;    //翻滚能量消耗增加
         moveSpeed *= overdriveSpeedFactor;          //移动速度增加
-
+        TimeController.Instance.BulletTime(slowMotionDuration, slowMotionDuration);       //子弹时间：时间流逝速度改变
     }
 
     /// <summary>
@@ -335,4 +375,12 @@ public class Player : Character
     }
 
     #endregion
+
+    /// <summary>
+    /// 发射导弹
+    /// </summary>
+    private void LaunchMissile()
+    {
+        missile.Launch(muzzleMiddle);   //发射导弹
+    }
 }
