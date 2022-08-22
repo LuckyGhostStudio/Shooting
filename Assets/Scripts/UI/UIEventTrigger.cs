@@ -32,7 +32,6 @@ public class UIEventTrigger : MonoBehaviour, IPointerEnterHandler, IPointerDownH
     /// <param name="eventData"></param>
     public void OnSelect(BaseEventData eventData)
     {
-        Debug.Log("Select Button");
         AudioManager.Instance.PlaySFX(selectSFX);
     }
 

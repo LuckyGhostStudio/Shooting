@@ -11,9 +11,9 @@ GameObject:
   - component: {fileID: 1448809099364253874}
   - component: {fileID: 1448809099364253877}
   - component: {fileID: 1448809099364253876}
-  - component: {fileID: -3712197764905650044}
+  - component: {fileID: 5811265339515788872}
   m_Layer: 9
-  m_Name: Enemy Projectile 10 O'clock
+  m_Name: Enemy Projectile 9 O'clock
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   destroyGameObject: 0
-  lifetime: 3
+  lifetime: 4
 --- !u!114 &1448809099364253876
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -68,8 +68,8 @@ MonoBehaviour:
     volume: 1
   damage: 7
   moveSpeed: 6
-  moveDirection: {x: -1, y: 0.1667}
---- !u!70 &-3712197764905650044
+  moveDirection: {x: -1, y: 0}
+--- !u!70 &5811265339515788872
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

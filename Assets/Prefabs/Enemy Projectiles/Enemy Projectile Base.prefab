@@ -11,9 +11,9 @@ GameObject:
   - component: {fileID: 1448809099364253874}
   - component: {fileID: 1448809099364253877}
   - component: {fileID: 1448809099364253876}
-  - component: {fileID: 5811265339515788872}
+  - component: {fileID: -9037435132511184570}
   m_Layer: 9
-  m_Name: Enemy Projectile 9 O'clock
+  m_Name: Enemy Projectile Base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -30,7 +30,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 8265272655206544544}
+  - {fileID: 1448809099585959800}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   destroyGameObject: 0
-  lifetime: 3
+  lifetime: 4
 --- !u!114 &1448809099364253876
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -66,11 +66,11 @@ MonoBehaviour:
     volume: 1
   - audioClip: {fileID: 8300000, guid: 958408b32ccf3714ea02821877b0870c, type: 3}
     volume: 1
-  damage: 7
-  moveSpeed: 6
+  damage: 10
+  moveSpeed: 8
   moveDirection: {x: -1, y: 0}
---- !u!70 &5811265339515788872
-CapsuleCollider2D:
+--- !u!61 &-9037435132511184570
+BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -83,9 +83,19 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
-  m_Size: {x: 0.24, y: 0.1}
-  m_Direction: 1
---- !u!1 &5280510514025118890
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 0.25, y: 0.08}
+  m_EdgeRadius: 0
+--- !u!1 &1448809099585959803
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -93,45 +103,45 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 8265272655206544544}
-  - component: {fileID: 4699254783662634035}
-  - component: {fileID: 3030384951588034075}
+  - component: {fileID: 1448809099585959800}
+  - component: {fileID: 1448809099585959798}
+  - component: {fileID: 1448809099585959801}
   m_Layer: 9
-  m_Name: Capsule
+  m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &8265272655206544544
+--- !u!4 &1448809099585959800
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5280510514025118890}
-  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
+  m_GameObject: {fileID: 1448809099585959803}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.1, y: 0.12, z: 0.1}
+  m_LocalScale: {x: 0.25, y: 0.08, z: 0.08}
   m_Children: []
   m_Father: {fileID: 1448809099364253874}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
---- !u!33 &4699254783662634035
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &1448809099585959798
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5280510514025118890}
-  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &3030384951588034075
+  m_GameObject: {fileID: 1448809099585959803}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &1448809099585959801
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5280510514025118890}
+  m_GameObject: {fileID: 1448809099585959803}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1

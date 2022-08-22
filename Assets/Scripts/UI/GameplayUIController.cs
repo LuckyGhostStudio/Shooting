@@ -51,11 +51,11 @@ public class GameplayUIController : MonoBehaviour
     /// </summary>
     private void Pause()
     {
-        TimeController.Instance.Pause();        //暂停
-        //hUDCanvas.enabled = false;              //禁用HUD UI
-        menusCanvas.enabled = true;             //启用暂停菜单UI
+        TimeController.Instance.Pause();            //暂停
+        //hUDCanvas.enabled = false;                //禁用HUD UI
+        menusCanvas.enabled = true;                 //启用暂停菜单UI
         GameManager.GameState = GameState.Paused;   //暂停状态
-        playerInput.EnablePauseMenuInput();     //切换到PauseMenu动作表
+        playerInput.EnablePauseMenuInput();         //切换到PauseMenu动作表
         playerInput.SwitchToDynamicUpdateMode();    //切换到动态更新模式
         UIInput.Instance.SelectUI(resumeButton);    //选中返回按钮
         AudioManager.Instance.PlaySFX(pauseSFX);    //播放暂停音效
@@ -68,6 +68,7 @@ public class GameplayUIController : MonoBehaviour
     {
         resumeButton.Select();  //选中按钮
         resumeButton.animator.SetTrigger(buttonPressedParameterID);    //状态切换为按下
+        UIInput.Instance.DisableAllUIInput();
         AudioManager.Instance.PlaySFX(unpauseSFX);    //播放取消暂停音效
     }
 
@@ -83,6 +84,7 @@ public class GameplayUIController : MonoBehaviour
         playerInput.EnableGameplayInput();      //切换到Gameplay动作表
         playerInput.SwitchToFixedUpdateMode();  //切换到固定更新模式
         UIInput.Instance.SelectUI(resumeButton);    //选中返回按钮
+        UIInput.Instance.DisableAllUIInput();
     }
 
     /// <summary>

@@ -5,7 +5,7 @@ using UnityEngine.Events;
 using UnityEngine.InputSystem;
 
 [CreateAssetMenu(menuName = "Player Input")]
-public class PlayerInput : ScriptableObject, InputActions.IGameplayActions, InputActions.IPauseMenuActions
+public class PlayerInput : ScriptableObject, InputActions.IGameplayActions, InputActions.IPauseMenuActions, InputActions.IGameOverScreenActions
 {
     //移动事件
     public event UnityAction<Vector2> onMove = delegate { };
@@ -30,13 +30,17 @@ public class PlayerInput : ScriptableObject, InputActions.IGameplayActions, Inpu
     //取消暂停事件
     public event UnityAction onUnpause = delegate { };
 
+    //确认游戏结束事件
+    public event UnityAction onConfirmGameOver = delegate { };
+
     InputActions inputActions;
 
     private void OnEnable()
     {
         inputActions = new InputActions();
-        inputActions.Gameplay.SetCallbacks(this);   //登记Gamplay动作表回调函数
-        inputActions.PauseMenu.SetCallbacks(this);  //登记PauseMenu动作表回调函数
+        inputActions.Gameplay.SetCallbacks(this);           //登记Gamplay动作表回调函数
+        inputActions.PauseMenu.SetCallbacks(this);          //登记PauseMenu动作表回调函数
+        inputActions.GameOverScreen.SetCallbacks(this);     //登记GameOverScreen动作表回调函数
     }
 
     private void OnDisable()
@@ -90,6 +94,11 @@ public class PlayerInput : ScriptableObject, InputActions.IGameplayActions, Inpu
     /// 切换到PauseMenu输入
     /// </summary>
     public void EnablePauseMenuInput() => SwitchActionMap(inputActions.PauseMenu, true);  //切换到PauseMenu动作表
+
+    /// <summary>
+    /// 切换到GameOverScreen输入
+    /// </summary>
+    public void EnableGameOverScreenInput() => SwitchActionMap(inputActions.GameOverScreen, false);     //切换到GameOverScreen动作表
 
     /// <summary>
     /// 移动
@@ -180,6 +189,18 @@ public class PlayerInput : ScriptableObject, InputActions.IGameplayActions, Inpu
         if (context.performed)
         {
             onLaunchMissile.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// 确认游戏结束
+    /// </summary>
+    /// <param name="context"></param>
+    public void OnConfirmGameOver(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            onConfirmGameOver.Invoke();
         }
     }
 }

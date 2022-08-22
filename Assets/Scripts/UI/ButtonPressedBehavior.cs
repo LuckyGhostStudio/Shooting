@@ -27,6 +27,6 @@ public class ButtonPressedBehavior : StateMachineBehaviour
     override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
         buttonFunctionTable[animator.gameObject.name].Invoke();     //调用播放动画的按钮的功能函数：animator为此脚本挂载的Animator
-        UIInput.Instance.DisableAllUIInput();   //禁用所有UI输入
+        //UIInput.Instance.DisableAllUIInput();   //禁用所有UI输入
     }
 }

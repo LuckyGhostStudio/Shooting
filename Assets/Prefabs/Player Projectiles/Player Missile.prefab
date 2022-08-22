@@ -4966,7 +4966,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90a7c46ee6264fe449c6679ee2622590, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hitVFX: {fileID: 7203458116342931450, guid: 975f9549f84dd594a84456abeb05e287, type: 3}
+  hitVFX: {fileID: 5060298685065931927, guid: 6775c68a79b34db4fa2fd4db2a4cdf74, type: 3}
   hitSFX:
   - audioClip: {fileID: 8300000, guid: 75adfe9a619833445a701305b983e548, type: 3}
     volume: 0.3
@@ -4984,6 +4984,15 @@ MonoBehaviour:
   lowSpeed: 8
   highSpeed: 35
   variableSpeedDelay: 0.5
+  explosionVFX: {fileID: 7203458116342931450, guid: 975f9549f84dd594a84456abeb05e287, type: 3}
+  explosionSFX:
+    audioClip: {fileID: 8300000, guid: 133384b18e980ad46b1b8ddaa55ea7a2, type: 3}
+    volume: 0.5
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  explosionRadius: 3
+  explosionDamage: 100
 --- !u!1 &2606331295242550494
 GameObject:
   m_ObjectHideFlags: 0

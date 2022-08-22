@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,6 +14,7 @@ public class SceneLoader : PersistentSingleton<SceneLoader>
 
     private const string MAIN_MENU = "MainMenu";
     private const string GAMEPLAY = "Gameplay";
+    private const string SCORING = "Scoring";
 
     /// <summary>
     /// 加载场景
@@ -67,5 +69,14 @@ public class SceneLoader : PersistentSingleton<SceneLoader>
     {
         StopAllCoroutines();
         StartCoroutine(LoadingCoroutine(MAIN_MENU));    //加载主菜单场景
+    }
+
+    /// <summary>
+    /// 加载计分场景
+    /// </summary>
+    public void LoadScoringScene()
+    {
+        StopAllCoroutines();
+        StartCoroutine(LoadingCoroutine(SCORING));    //加载计分场景
     }
 }

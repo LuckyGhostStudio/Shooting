@@ -62,6 +62,7 @@ public class Player : Character
 
     private float slowMotionDuration = 1f;   //子弹时间持续时间
 
+    Vector2 moveDirection;
     Vector2 previousVelocity;
     Quaternion previousRotation;
 
@@ -149,6 +150,8 @@ public class Player : Character
 
         if (gameObject.activeSelf)
         {
+            Move(moveDirection);    //抵消与敌人子弹碰撞力
+
             if (regenerateHealth)   //可持续回血
             {
                 //携程不为空，停用旧协程
@@ -170,6 +173,7 @@ public class Player : Character
 
     public override void Die()
     {
+        GameManager.onGameOver?.Invoke();       //不为空则调用onGameOver处理方法
         GameManager.GameState = GameState.GameOver;     //GameOver
         stateBarHUD.UpdateState(0, maxHealth);     //更新血条
         base.Die();
@@ -189,9 +193,9 @@ public class Player : Character
         }
 
         //Quaternion moveRotation = Quaternion.AngleAxis(moveRotationAngle * moveInput.y, Vector3.right);
-
+        moveDirection = moveInput.normalized;
         //变速移动
-        moveCoroutine = StartCoroutine(MoveCoroutine(accelerateTime, moveInput.normalized * moveSpeed, Quaternion.AngleAxis(moveRotationAngle * moveInput.y, Vector3.right)));
+        moveCoroutine = StartCoroutine(MoveCoroutine(accelerateTime, moveDirection * moveSpeed, Quaternion.AngleAxis(moveRotationAngle * moveInput.y, Vector3.right)));
         StopCoroutine(nameof(DecelerationCoroutine));   //停止减速等待
         StartCoroutine(nameof(MoveRangeLimitationCoroutine));
     }
