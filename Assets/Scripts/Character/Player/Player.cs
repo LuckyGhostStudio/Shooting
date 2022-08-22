@@ -150,7 +150,7 @@ public class Player : Character
 
         if (gameObject.activeSelf)
         {
-            Move(moveDirection);    //抵消与敌人子弹碰撞力
+            //Move(moveDirection);    //抵消与敌人子弹碰撞力
 
             if (regenerateHealth)   //可持续回血
             {
